@@ -1,0 +1,21 @@
+# MySQL数据库连接信息
+mysql:
+  enable: true
+  host:  127.0.0.1
+  port: 3306
+  user: root
+  password:
+  database:
+
+# 成果物上传到SFTP服务器相关信息
+output:
+  host: 127.0.0.1
+  port: 22
+  user:
+  password:
+  target:
+
+# 需要执行的语句及存入的文件名称
+queries:
+  - sql: select * from table
+    fileName: table.csv
