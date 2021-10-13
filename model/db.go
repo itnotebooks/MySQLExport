@@ -34,14 +34,13 @@ func DbInit() {
 	}
 
 	db = newDb
-	sqlDb := db.DB()
-	sqlDb.SetConnMaxLifetime(time.Minute * 10)
-	sqlDb.SetMaxOpenConns(50)
-	sqlDb.SetMaxIdleConns(15)
+	Db := db.DB()
+	Db.SetConnMaxLifetime(time.Minute * 10)
+	Db.SetMaxOpenConns(50)
+	Db.SetMaxIdleConns(15)
 }
 
 func DB() *gorm.DB {
-	db.LogMode(true)
+	db.LogMode(false)
 	return db.New()
 }
-

@@ -8,7 +8,6 @@
 package tools
 
 import (
-	"MySQLExport/config"
 	"fmt"
 	"log"
 	"os"
@@ -18,7 +17,7 @@ import (
 // MakeDir 递归创建目录: ${baseDir}/target/YYYY-mm-dd_HHMMSS
 func MakeDir() string {
 
-	targetDir := fmt.Sprintf("%v/target/%v", config.BaseDir, time.Now().Format("2006-01-02_150405"))
+	targetDir := fmt.Sprintf("%v/target/%v", GetBaseDir(), time.Now().Format("2006-01-02_150405"))
 
 	// 判断目录是否存在,不存在则创建
 	_, err := os.Stat(targetDir)

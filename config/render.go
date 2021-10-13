@@ -8,6 +8,7 @@
 package config
 
 import (
+	"MySQLExport/tools/tools"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
@@ -23,16 +24,36 @@ type MySQLField struct {
 	MySQLDb       string `yaml:"database"`
 }
 
+type UploadField struct {
+	Engine    string `yaml:"engine" json:"engine"`
+	Enable    bool   `yaml:"enable" json:"enable"`
+	Host      string `yaml:"host" json:"host"`
+	Port      int    `yaml:"port" json:"port"`
+	User      string `yaml:"user" json:"user"`
+	Password  string `yaml:"password" json:"password"`
+	TargetDir string `yaml:"target" json:"target"`
+}
+
 // QueryField 要执行的SQL及结果要存入的Sheet页
 type QueryField struct {
-	SQL      string `yaml:"sql" json:"sql"`
-	FileName string `yaml:"fileName" json:"fileName"`
+	SQL           string `yaml:"sql" json:"sql"`
+	FileName      string `yaml:"fileName" json:"fileName"`
+	ArchiveByFile bool   `yaml:"archiveByfile" json:"archiveByfile"`
+}
+
+// ArchiveField 打包压缩配置
+type ArchiveField struct {
+	Enable      bool   `yaml:"enable" json:"enable"`
+	ZipFileName string `yaml:"zipFile" json:"zipFile"`
+	PassWord    string `yaml:"password" json:"password"`
 }
 
 // ConfigField 一级配置文件
 type ConfigField struct {
-	MySQL   MySQLField   `yaml:"mysql" json:"mysql"`
-	Queries []QueryField `yaml:"queries" json:"queries"`
+	MySQL   MySQLField    `yaml:"mysql" json:"mysql"`
+	Queries []QueryField  `yaml:"queries" json:"queries"`
+	Uploads []UploadField `yaml:"uploads" json:"uploads"`
+	Archive ArchiveField  `yaml:"archive" json:"archive"`
 }
 
 // GlobalConfig 配置变更存放于全局变量
@@ -58,9 +79,18 @@ func RenderConfig(c string) error {
 	if config.MySQL.MySQLEnable {
 		GlobalConfig.MySQL = config.MySQL
 	}
+	// 结果上传到哪里？
+	GlobalConfig.Uploads = config.Uploads
 
 	// Query语句
 	GlobalConfig.Queries = config.Queries
 
+	// 打包压缩相关参数
+	GlobalConfig.Archive = config.Archive
+
+	// 如果未配置密码则生成一个12位随机密码
+	if config.Archive.PassWord == "" {
+		GlobalConfig.Archive.PassWord = tools.RandomString(12)
+	}
 	return nil
 }
