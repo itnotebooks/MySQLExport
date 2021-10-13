@@ -87,7 +87,7 @@ func ZipLib(dst, src, password string) (err error) {
 
 		// 写入文件头信息
 		//fh, err := zFileWriter.CreateHeader(header)
-		fh, err := zFileWriter.Encrypt(header, password, zip.StandardEncryption)
+		fh, err := zFileWriter.Encrypt(header, password, zip.AES256Encryption)
 		if err != nil {
 			return err
 		}
