@@ -19,3 +19,6 @@ output:
 queries:
   - sql: select * from table
     fileName: table.csv
+    # 单独打包参数，将以文件名命名，默认为false
+    # 如果archive为false，则此项无效
+    archiveByfile: true
