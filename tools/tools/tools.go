@@ -11,6 +11,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -29,4 +30,17 @@ func RandomString(length int) string {
 		result = append(result, bytes[r.Intn(len(bytes))])
 	}
 	return string(result)
+}
+
+func ConvertDateSymbolToString(s string) string {
+	nowTime := time.Now()
+	s = strings.ReplaceAll(s, "YYYY", nowTime.Format("2006"))
+	// MM代表月份mm
+	s = strings.ReplaceAll(s, "MM", nowTime.Format("01"))
+	s = strings.ReplaceAll(s, "DD", nowTime.Format("02"))
+	s = strings.ReplaceAll(s, "HH", nowTime.Format("15"))
+	// FF代表分钟MM
+	s = strings.ReplaceAll(s, "FF", nowTime.Format("04"))
+	s = strings.ReplaceAll(s, "SS", nowTime.Format("05"))
+	return s
 }

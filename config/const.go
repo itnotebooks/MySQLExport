@@ -13,6 +13,7 @@ import (
 
 var UploadFiles []string
 var WG sync.WaitGroup
+var SftpWG sync.WaitGroup
 
 var FileType = []string{
 	"csv",

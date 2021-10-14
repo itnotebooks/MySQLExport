@@ -14,7 +14,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -64,15 +63,7 @@ func (s *SFTP) FileUpload(src, fileName string) {
 
 	remoteTargetDir := s.Target
 	// 判断远程目录是否需要按日期生成
-	if strings.HasSuffix(s.Target, "YYYY-mm") {
-
-	} else if strings.HasSuffix(s.Target, "YYYYmm") {
-
-	} else if strings.HasSuffix(s.Target, "YYYY-mm-dd") {
-
-	} else if strings.HasSuffix(s.Target, "YYYYmmdd") {
-
-	}
+	remoteTargetDir = tools.ConvertDateSymbolToString(remoteTargetDir)
 
 	// 不存在则创建，存在则不做动作
 	err = s.SFTPChn.MkdirAll(remoteTargetDir)

@@ -19,13 +19,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
-type Result struct {
-	code           int
-	target_content string
-}
+var (
+	ArchiveEnable = config.GlobalConfig.Archive.Enable
+	UploadFiles   = config.UploadFiles
+)
 
 func Factory(c *cli.Context) error {
 	var err error
@@ -67,20 +66,29 @@ func Factory(c *cli.Context) error {
 	}
 
 	config.WG.Wait()
+
 	// 压缩上传
 	if globalConfig.Archive.Enable {
-		password := globalConfig.Archive.PassWord
-		zipFile := ArchiveCsv2ZipFile(target+"/", globalConfig.Archive.ZipFileName, password)
-		UploadZipFile2SFTP(zipFile)
-		config.WG.Wait()
-		log.Println("Zip file password:", password)
+		zipFile := ArchiveCsv2ZipFile(target+"/", globalConfig.Archive.ZipFileName, globalConfig.Archive.Encrypt,
+			globalConfig.Archive.PassWord,
+			globalConfig.Archive.EncryptionMethod)
+		UploadFiles = append(UploadFiles, zipFile)
 	}
 
+	config.WG.Add(1)
+	go UploadFile2SFTPs()
+
+	config.SftpWG.Wait()
+	config.WG.Wait()
+
+	if globalConfig.Archive.Enable && globalConfig.Archive.Encrypt {
+		log.Println("Zip file password:", globalConfig.Archive.PassWord)
+	}
 	return nil
 }
 
 // ExecQueryAndWriteToCSV 执行构架SQL并将结果写入到CSV文件
-func ExecQueryAndWriteToCSV(sql, target, name string) error {
+func ExecQueryAndWriteToCSV(sql, target, name string) {
 	fileName := fmt.Sprintf("%v/%v", target, name)
 	Db := model.DB()
 
@@ -102,31 +110,26 @@ func ExecQueryAndWriteToCSV(sql, target, name string) error {
 	}
 
 	config.WG.Done()
-
-	return nil
+	if !ArchiveEnable {
+		UploadFiles = append(UploadFiles, fileName)
+	}
+	return
 }
 
-func ArchiveCsv2ZipFile(src, zipfileName, password string) string {
-	// 替换zip文件名
-	nowTime := time.Now()
-	zipfileName = strings.ReplaceAll(zipfileName, "YYYY", nowTime.Format("2006"))
-	// MM代表月份mm
-	zipfileName = strings.ReplaceAll(zipfileName, "MM", nowTime.Format("01"))
-	zipfileName = strings.ReplaceAll(zipfileName, "DD", nowTime.Format("02"))
-	zipfileName = strings.ReplaceAll(zipfileName, "HH", nowTime.Format("15"))
-	// FF代表分钟MM
-	zipfileName = strings.ReplaceAll(zipfileName, "FF", nowTime.Format("04"))
-	zipfileName = strings.ReplaceAll(zipfileName, "SS", nowTime.Format("05"))
+func ArchiveCsv2ZipFile(src, zipfileName string, encrypt bool, password, enc string) string {
+	// 将zip包名中的日期符号转换为实际数值
+	zipfileName = tools.ConvertDateSymbolToString(zipfileName)
+
 	zipFilePath := src + "/" + zipfileName
-	err := zip.ZipLib(zipFilePath, src, password)
+	err := zip.ZipLib(zipFilePath, src, encrypt, password, enc)
 	if err != nil {
 		log.Fatal("Archive error,", err)
 	}
 	return zipFilePath
 }
 
-// UploadZipFile2SFTP zip文件上传到SFTP
-func UploadZipFile2SFTP(src string) {
+// UploadFile2SFTPs 文件上传到SFTPs
+func UploadFile2SFTPs() {
 
 	var globalConfig = config.GlobalConfig
 
@@ -134,25 +137,27 @@ func UploadZipFile2SFTP(src string) {
 		if server.Enable {
 			switch server.Engine {
 			case "sftp":
-				config.WG.Add(1)
-				go UploadToSftp(src, fmt.Sprintf("%v:%v", server.Host, server.Port), server.User,
+				config.SftpWG.Add(1)
+				go UploadToSftp(fmt.Sprintf("%v:%v", server.Host, server.Port), server.User,
 					server.Password, server.TargetDir)
 			}
 		}
 	}
-
+	config.SftpWG.Wait()
+	config.WG.Done()
 }
 
-func UploadToSftp(src, host, user, password, dest string) {
-	fileName := filepath.Base(src)
+func UploadToSftp(host, user, password, dest string) {
 
 	// 创建SFTP连接
 	sftpClient := model.NewSFTP(host, user, password, dest)
 
-	// 上传文件
-	sftpClient.FileUpload(src, fileName)
-
+	for _, f := range UploadFiles {
+		fileName := filepath.Base(f)
+		// 上传文件
+		sftpClient.FileUpload(f, fileName)
+	}
 	// 关闭链接
 	defer sftpClient.Close()
-	config.WG.Done()
+	config.SftpWG.Done()
 }

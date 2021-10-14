@@ -43,9 +43,11 @@ type QueryField struct {
 
 // ArchiveField 打包压缩配置
 type ArchiveField struct {
-	Enable      bool   `yaml:"enable" json:"enable"`
-	ZipFileName string `yaml:"zipFile" json:"zipFile"`
-	PassWord    string `yaml:"password" json:"password"`
+	Enable           bool   `yaml:"enable" json:"enable"`
+	Encrypt          bool   `yaml:"encrypt" json:"encrypt"`
+	EncryptionMethod string `yaml:"encryptionMethod" json:"encryptionMethod"`
+	ZipFileName      string `yaml:"zipFile" json:"zipFile"`
+	PassWord         string `yaml:"password" json:"password"`
 }
 
 // ConfigField 一级配置文件

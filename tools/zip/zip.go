@@ -16,9 +16,15 @@ import (
 	"strings"
 )
 
-// ZipLib 压缩递归压缩
-func ZipLib(dst, src, password string) (err error) {
+// ZipLib 递归压缩，默认采用AES256加密方式加密
+// 支持以下加密方式
+// Standard         ZIP标准，安全性最低
+// AES128           AES128位，安全性高
+// AES192           AES192位，安全性高
+// AES256           AES256位，安全性最高，本程序默认采用此加密方式
+func ZipLib(dst, src string, encrypt bool, password, enc string) (err error) {
 	var dstFileBaseName = ""
+
 	// 创建压缩文件对象
 	zfile, err := os.Create(dst)
 	defer zfile.Close()
@@ -82,12 +88,28 @@ func ZipLib(dst, src, password string) (err error) {
 
 		}
 
-		// 设置密码
-		header.SetPassword(password)
+		var fh io.Writer
+		if encrypt {
+			// 加密方式
+			var encryption = zip.AES256Encryption
 
-		// 写入文件头信息
-		//fh, err := zFileWriter.CreateHeader(header)
-		fh, err := zFileWriter.Encrypt(header, password, zip.AES256Encryption)
+			switch enc {
+			case "Standard":
+				encryption = zip.StandardEncryption
+			case "AES128":
+				encryption = zip.AES128Encryption
+			case "AES192":
+				encryption = zip.AES192Encryption
+
+			}
+
+			// 写入文件头信息，并配置密码
+			fh, err = zFileWriter.Encrypt(header, password, encryption)
+		} else {
+			// 写入文件头信息
+			fh, err = zFileWriter.CreateHeader(header)
+		}
+
 		if err != nil {
 			return err
 		}
