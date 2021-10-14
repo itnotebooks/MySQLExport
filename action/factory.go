@@ -22,8 +22,7 @@ import (
 )
 
 var (
-	ArchiveEnable = config.GlobalConfig.Archive.Enable
-	UploadFiles   = config.UploadFiles
+	UploadFiles = config.UploadFiles
 )
 
 func Factory(c *cli.Context) error {
@@ -96,7 +95,6 @@ func ExecQueryAndWriteToCSV(sql, target, name string) {
 	log.Printf("[%v] SQL execing...\n", name)
 	rows, err := Db.Raw(sql).Rows()
 	if err != nil {
-		config.WG.Done()
 		log.Fatal(err)
 	}
 	defer rows.Close()
@@ -105,12 +103,11 @@ func ExecQueryAndWriteToCSV(sql, target, name string) {
 	log.Printf("[%v] CSV writing...\n", name)
 	err = csv.WriteFile(fileName, rows)
 	if err != nil {
-		config.WG.Done()
 		log.Fatal(err)
 	}
 
 	config.WG.Done()
-	if !ArchiveEnable {
+	if !config.GlobalConfig.Archive.Enable {
 		UploadFiles = append(UploadFiles, fileName)
 	}
 	return

@@ -30,6 +30,7 @@ func DbInit() {
 		globalConfig.MySQL.MySQLDb),
 	)
 	if err != nil {
+		log.Println(err)
 		log.Fatal("MySQL连接建立失败!!!")
 	}
 
@@ -41,6 +42,6 @@ func DbInit() {
 }
 
 func DB() *gorm.DB {
-	db.LogMode(false)
+	db.LogMode(config.GlobalConfig.DEBUG)
 	return db.New()
 }

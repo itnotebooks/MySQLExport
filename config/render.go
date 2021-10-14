@@ -52,6 +52,7 @@ type ArchiveField struct {
 
 // ConfigField 一级配置文件
 type ConfigField struct {
+	DEBUG   bool          `yaml:"debug" json:"debug"`
 	MySQL   MySQLField    `yaml:"mysql" json:"mysql"`
 	Queries []QueryField  `yaml:"queries" json:"queries"`
 	Uploads []UploadField `yaml:"uploads" json:"uploads"`
@@ -76,6 +77,8 @@ func RenderConfig(c string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	GlobalConfig.DEBUG = config.DEBUG
 
 	// MySQL配置信息
 	if config.MySQL.MySQLEnable {

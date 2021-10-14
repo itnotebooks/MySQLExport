@@ -1,3 +1,6 @@
+# 是否开启Debug模式，默认false(关闭)
+debug: false
+
 # MySQL数据库连接信息
 mysql:
   enable: true
@@ -47,3 +50,10 @@ archive:
   # 特殊格式可能会导致文件创建失败，请按OS系统的全名规则创建
   # 注：不支持特殊字符使用双引号括起的做法
   zipFile: YYYYMM.zip
+
+# 需要执行的语句及存入的Sheet页名称
+# 如果SQL语句分行，请使用双引号包起来
+queries:
+  - sql: SELECT * FROM TABLES
+    # 文件名以.csv结尾，需要注意带文件后缀，Windows平台可能会有影响
+    fileName: XXXX.csv
