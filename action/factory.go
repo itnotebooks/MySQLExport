@@ -54,11 +54,12 @@ func Factory(c *cli.Context) error {
 	// 获取全局配置信息
 	globalConfig := config.GlobalConfig
 
+	// DB初始化
+	model.DbInit()
+
 	// 创建文件输出目录: ${baseDir}/target/YYYY-mm-dd_HHMMSS
 	target := tools.MakeDir()
 
-	// DB初始化
-	model.DbInit()
 	for _, query := range globalConfig.Queries {
 		config.WG.Add(1)
 		go ExecQueryAndWriteToCSV(query.SQL, target, query.FileName)
