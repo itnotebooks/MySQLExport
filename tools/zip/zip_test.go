@@ -17,8 +17,7 @@ func TestZipLib(t *testing.T) {
 	enc := "AES256"
 	encrypt := true
 	pass := tools.RandomString(12)
-	//baseDir := tools.GetBaseDir()
-	baseDir := "/Users/eric/workspaces/go/src/MySQLExport"
-	ZipLib(baseDir+"/test/202110.zip", baseDir+"/target/2021-10-13_114245/adp_data_config_8.csv", encrypt, pass, enc)
+	baseDir := tools.GetBaseDir()
+	ZipLib(baseDir+"/test/202110.zip", baseDir+"/target/2021-10-13_114245/xxx.csv", encrypt, pass, enc)
 	log.Println("Zip file password:", pass)
 }
