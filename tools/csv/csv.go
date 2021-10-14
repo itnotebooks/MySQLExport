@@ -8,7 +8,6 @@
 package csv
 
 import (
-	"bytes"
 	"database/sql"
 	"encoding/csv"
 	"fmt"
@@ -17,46 +16,25 @@ import (
 	"time"
 )
 
-func WriteFile(csvFileName string, rows *sql.Rows) error {
-	return New(rows).WriteFile(csvFileName)
-}
-
-func WriteString(rows *sql.Rows) (string, error) {
-	return New(rows).WriteString()
-}
-
-func Write(writer io.Writer, rows *sql.Rows) error {
-	return New(rows).Write(writer)
+type Converter struct {
+	Headers         []string  // 列头字段
+	WriteHeaders    bool      // 是否写入列头
+	TimeFormat      string    // 时间转换
+	FloatFormat     string    // Float类型转换
+	Delimiter       rune      // 分隔符
+	rows            *sql.Rows // SQL查询结果
+	rowPreProcessor CsvPreProcessorFunc
 }
 
 type CsvPreProcessorFunc func(row []string, columnNames []string) (outputRow bool, processedRow []string)
 
-type Converter struct {
-	Headers         []string
-	WriteHeaders    bool
-	TimeFormat      string
-	FloatFormat     string
-	Delimiter       rune
-	rows            *sql.Rows
-	rowPreProcessor CsvPreProcessorFunc
+// WriteFile 将SQL结果写入到CSV文件
+func WriteFile(fileName string, rows *sql.Rows) error {
+	return New(rows).WriteFile(fileName)
 }
 
 func (c *Converter) SetRowPreProcessor(processor CsvPreProcessorFunc) {
 	c.rowPreProcessor = processor
-}
-
-func (c Converter) String() string {
-	csv, err := c.WriteString()
-	if err != nil {
-		return ""
-	}
-	return csv
-}
-
-func (c Converter) WriteString() (string, error) {
-	buffer := bytes.Buffer{}
-	err := c.Write(&buffer)
-	return buffer.String(), err
 }
 
 func (c Converter) WriteFile(csvFileName string) error {
@@ -74,18 +52,25 @@ func (c Converter) WriteFile(csvFileName string) error {
 	return f.Close()
 }
 
+// Write 数据写入到CSV文件的具体实现
 func (c Converter) Write(writer io.Writer) error {
 	rows := c.rows
+
+	// 新建一个Writer对象
 	csvWriter := csv.NewWriter(writer)
+
+	// 分割符
 	if c.Delimiter != '\x00' {
 		csvWriter.Comma = c.Delimiter
 	}
 
+	// 列字段
 	columnNames, err := rows.Columns()
 	if err != nil {
 		return err
 	}
 
+	// 是否需要列头
 	if c.WriteHeaders {
 		var headers []string
 		if len(c.Headers) > 0 {
@@ -93,6 +78,7 @@ func (c Converter) Write(writer io.Writer) error {
 		} else {
 			headers = columnNames
 		}
+		// 写入列头
 		err = csvWriter.Write(headers)
 		if err != nil {
 			return fmt.Errorf("failed to write headers: %w", err)
@@ -114,6 +100,7 @@ func (c Converter) Write(writer io.Writer) error {
 			return err
 		}
 
+		// 遍历每个字段的类型
 		for i, _ := range columnNames {
 			var value interface{}
 			rawValue := values[i]
@@ -151,6 +138,8 @@ func (c Converter) Write(writer io.Writer) error {
 		if c.rowPreProcessor != nil {
 			writeRow, row = c.rowPreProcessor(row, columnNames)
 		}
+
+		// 写入数据
 		if writeRow {
 			err = csvWriter.Write(row)
 			if err != nil {
@@ -159,7 +148,7 @@ func (c Converter) Write(writer io.Writer) error {
 		}
 	}
 	err = rows.Err()
-
+	// 刷到磁盘
 	csvWriter.Flush()
 
 	return err
