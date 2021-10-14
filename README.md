@@ -1,0 +1,2 @@
+# MySQLExport
+MySQLExport工具会执行指定的一条或多条SQL，并将查询结果生成CSV文件上传到指定存储空间中
