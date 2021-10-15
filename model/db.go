@@ -7,7 +7,6 @@
 
 package model
 
-import "C"
 import (
 	"MySQLExport/config"
 	"fmt"
@@ -22,7 +21,7 @@ var db *gorm.DB
 func DbInit() {
 	globalConfig := config.GlobalConfig
 	// 创建DB连接
-	newDb, err := gorm.Open("mysql", fmt.Sprintf("%s:%s@(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+	Db, err := gorm.Open("mysql", fmt.Sprintf("%s:%s@(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		globalConfig.MySQL.MySQLUser,
 		globalConfig.MySQL.MySQLPassword,
 		globalConfig.MySQL.MySQLHost,
@@ -34,11 +33,10 @@ func DbInit() {
 		log.Fatal("MySQL连接建立失败!!!")
 	}
 
-	db = newDb
-	Db := db.DB()
-	Db.SetConnMaxLifetime(time.Minute * 10)
-	Db.SetMaxOpenConns(50)
-	Db.SetMaxIdleConns(15)
+	db = Db
+	db.DB().SetConnMaxLifetime(time.Minute * 10)
+	db.DB().SetMaxOpenConns(50)
+	db.DB().SetMaxIdleConns(15)
 }
 
 func DB() *gorm.DB {

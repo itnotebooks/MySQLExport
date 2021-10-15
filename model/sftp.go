@@ -74,7 +74,7 @@ func (s *SFTP) FileUpload(src, fileName string) {
 
 	// 上传文件到远程目录
 	remoteFilePath := remoteTargetDir + "/" + fileName
-	log.Printf("%v\tString uploading...", remoteFilePath)
+	log.Printf("[%v]\tStaring uploading...", src)
 	// Create方法，如果远程文件存在，则替换，不存在则创建
 	remoteFile, err := s.SFTPChn.Create(remoteFilePath)
 	if err != nil {
@@ -102,7 +102,7 @@ func (s *SFTP) FileUpload(src, fileName string) {
 		log.Fatalln(err.Error())
 	}
 
-	log.Printf("[ %v(%v) ---> %s(%v) ] : Files upload success!!!", localFilePath, tools.FormatFileSize(localFileInfo.Size()),
+	log.Printf("[%v(%v) ---> %s(%v)] : Files upload success!!!", localFilePath, tools.FormatFileSize(localFileInfo.Size()),
 		remoteFilePath,
 		tools.FormatFileSize(n))
 

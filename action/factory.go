@@ -119,6 +119,7 @@ func ArchiveCsv2ZipFile(src, zipfileName string, encrypt bool, password, enc str
 	zipfileName = tools.ConvertDateSymbolToString(zipfileName)
 
 	zipFilePath := src + "/" + zipfileName
+	log.Printf("[%v] Archive file creating...", zipFilePath)
 	err := zip.ZipLib(zipFilePath, src, encrypt, password, enc)
 	if err != nil {
 		log.Fatal("Archive error,", err)
