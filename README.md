@@ -98,3 +98,6 @@ queries:
 ./MySQLExport -c ./config.yaml
 ```
 
+<p align="center">
+<img src="static/demo.jpeg"/>
+</p>
